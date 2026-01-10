@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.ai-prompt-root {
+  all: initial;
+  font-family: system-ui, sans-serif;
+}
+
+.ai-prompt-root * {
+  box-sizing: border-box;
+}

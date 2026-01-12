@@ -312,14 +312,16 @@ const VersionHistoryModal = ({ prompt, onRollback, onClose }) => {
 };
 
 // Add Prompt Modal Component
-const AddPromptModal = ({ onAdd, onClose, editPrompt = null, store }) => {
+const AddPromptModal = ({ onAdd, onClose, editPrompt = null, prefillContent = '', store }) => {
   const [title, setTitle] = useState(editPrompt?.title || '');
-  const [content, setContent] = useState(editPrompt?.content || '');
+  const [content, setContent] = useState(
+    editPrompt ? editPrompt.content : prefillContent
+  );  
   const [tags, setTags] = useState(editPrompt?.tags?.join(', ') || '');
   const [starred, setStarred] = useState(editPrompt?.starred || false);
   const [folderId, setFolderId] = useState(editPrompt?.folderId || '');
   const [changeNote, setChangeNote] = useState('');
-
+  
   const handleSubmit = () => {
     if (!title.trim() || !content.trim()) return;
 
@@ -856,6 +858,7 @@ export default function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState(null);
+  const [prefillContent, setPrefillContent] = useState('');
   const [addPromptModal, setAddPromptModal] = useState(false);
   const [editPrompt, setEditPrompt] = useState(null);
   const [versionHistory, setVersionHistory] = useState(null);
@@ -871,7 +874,23 @@ export default function App() {
     window.addEventListener('togglePromptManager', handleToggle);
     return () => window.removeEventListener('togglePromptManager', handleToggle);
   }, []);
-
+  useEffect(() => {
+    const handler = () => {
+      const text = getCurrentChatInputText();
+      if (!text) return;
+    
+      setPrefillContent(text);
+      setEditPrompt(null);      // CRITICAL
+      setAddPromptModal(true);  // Create mode
+    };
+    
+  
+    window.addEventListener('openAddPromptFromChat', handler);
+    return () => {
+      window.removeEventListener('openAddPromptFromChat', handler);
+    };
+  }, []);
+  
   // Keyboard shortcut
   useEffect(() => {
     const handleKeyboard = (e) => {
@@ -885,24 +904,72 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyboard);
   }, []);
 
+
   const insertPrompt = (content) => {
     const chatGPTInput = document.querySelector('#prompt-textarea p');
     const geminiInput = document.querySelector('.ql-editor.textarea.new-input-ui p');
-    const claudeInput = document.querySelector('div[contenteditable="true"][data-placeholder]');
+    
+    // Try multiple selectors for Claude with detailed logging
+    let claudeInput = null;
+    
+    // Try each selector and log results
+    const selectors = [
+      '[data-testid="chat-input"] p',
+      '[data-testid="chat-input"]',
+      'div[contenteditable="true"][role="textbox"] p',
+      'div[contenteditable="true"][role="textbox"]',
+      '.tiptap p',
+      '.tiptap'
+    ];
+    
+    console.log('=== Trying to find Claude input ===');
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      console.log(`Selector: "${selector}"`, element);
+      if (element && !claudeInput) {
+        claudeInput = element;
+        console.log('✓ Found with selector:', selector);
+        break;
+      }
+    }
 
     const targetInput = chatGPTInput || geminiInput || claudeInput;
+    console.log('Final targetInput:', targetInput);
 
     if (targetInput) {
-      targetInput.textContent = content;
+      // Append to existing text instead of replacing
+      const existingText = targetInput.textContent || '';
+      const separator = existingText.trim() ? '\n\n' : '';
+      targetInput.textContent = existingText + separator + content;
       targetInput.focus();
 
       const event = new Event('input', { bubbles: true });
       targetInput.dispatchEvent(event);
     } else {
+      console.error('No input field found!');
       navigator.clipboard.writeText(content);
       alert('Prompt copied to clipboard!');
     }
   };
+  const getCurrentChatInputText = () => {
+    const selectors = [
+      '#prompt-textarea p',
+      '.ql-editor.textarea.new-input-ui p',
+      '[data-testid="chat-input"]',
+      'div[contenteditable="true"][role="textbox"]',
+      '.tiptap'
+    ];
+  
+    for (const selector of selectors) {
+      const el = document.querySelector(selector);
+      if (el && el.textContent?.trim()) {
+        return el.textContent.trim();
+      }
+    }
+  
+    return '';
+  };
+  
 
   const handleUsePrompt = (prompt) => {
     store.incrementUse(prompt.id);
@@ -970,17 +1037,20 @@ export default function App() {
         />
       )}
 
-      {(addPromptModal || editPrompt) && (
-        <AddPromptModal
-          onAdd={handleAddPrompt}
-          onClose={() => {
-            setAddPromptModal(false);
-            setEditPrompt(null);
-          }}
-          editPrompt={editPrompt}
-          store={store}
-        />
-      )}
+{(addPromptModal || editPrompt) && (
+  <AddPromptModal
+    onAdd={handleAddPrompt}
+    onClose={() => {
+      setAddPromptModal(false);
+      setEditPrompt(null);
+      setPrefillContent('');
+    }}
+    editPrompt={editPrompt}
+    prefillContent={prefillContent}
+    store={store}
+  />
+)}
+
 
       {versionHistory && (
         <VersionHistoryModal

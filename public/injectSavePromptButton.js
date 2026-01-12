@@ -1,0 +1,148 @@
+function findChatInput() {
+  return (
+    document.querySelector('#prompt-textarea') ||                // ChatGPT
+    document.querySelector('.trailing-actions-wrapper.ui-ready-fade-in.ng-tns-c626672225-6') || // Gemini
+    document.querySelector('[contenteditable="true"][role="textbox"]') || // Claude
+    document.querySelector('.tiptap')                             // Claude fallback
+  );
+}
+
+function findActionBar(input) {
+  if (!input) return null;
+
+  /* ==========================
+     ChatGPT
+  ========================== */
+  const chatgptBar = document.querySelector('.trailing-actions-wrapper');
+  if (chatgptBar) return chatgptBar;
+
+  /* ==========================
+     Gemini
+  ========================== */
+  if (input.classList.contains('ql-editor')) {
+    let el = input.parentElement;
+    while (el && el !== document.body) {
+      if (
+        el.querySelector('button') &&
+        getComputedStyle(el).display === 'flex'
+      ) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+  }
+
+  /* ==========================
+     Claude (FIXED) - Target the exact container
+  ========================== */
+  // First try to find by the radix menu ID pattern
+  const radixMenu = document.querySelector(['[contenteditable="true"][role="textbox"]', '.tiptap']);
+  if (radixMenu) {
+    // Get the parent flex container that holds both the menu and send button
+    let parent = radixMenu.parentElement;
+    while (parent && parent !== document.body) {
+      const style = getComputedStyle(parent);
+      const hasSendButton = parent.querySelector('button[type="submit"]');
+      
+      if (style.display === 'flex' && hasSendButton) {
+        return parent;
+      }
+      parent = parent.parentElement;
+    }
+  }
+
+  // Fallback: look for the specific flex container structure
+  let el = input.parentElement;
+  while (el && el !== document.body) {
+    const style = getComputedStyle(el);
+    const isFlex = style.display === 'flex';
+    const hasSendButton = el.querySelector('button[type="submit"]');
+    const hasRadixMenu = el.querySelector('[aria-haspopup="menu"]');
+
+    if (isFlex && hasSendButton && hasRadixMenu) {
+      return el;
+    }
+
+    el = el.parentElement;
+  }
+
+  return null;
+}
+
+function injectSavePromptButton() {
+  const input = findChatInput();
+  if (!input) return;
+
+  const actionBar = findActionBar(input);
+  if (!actionBar) return;
+
+  if (actionBar.querySelector('#save-prompt-btn')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'save-prompt-btn';
+  btn.type = 'button';
+  btn.title = 'Save prompt';
+  btn.innerHTML = '⭐';
+
+  btn.style.cssText = `
+    margin-left: 6px;
+    margin-right: 6px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    z-index: 9999;
+    transition: background 0.2s;
+  `;
+
+  // Add hover effect
+  btn.addEventListener('mouseenter', () => {
+    btn.style.background = 'rgba(255, 255, 255, 0.1)';
+  });
+  
+  btn.addEventListener('mouseleave', () => {
+    btn.style.background = 'transparent';
+  });
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    window.dispatchEvent(
+      new CustomEvent('openAddPromptFromChat')
+    );
+  });
+
+  // Insert before the send button (which should be the last child)
+  const sendButton = actionBar.querySelector('button[type="submit"]');
+  if (sendButton) {
+    actionBar.insertBefore(btn, sendButton);
+  } else {
+    actionBar.appendChild(btn);
+  }
+}
+
+const observer = new MutationObserver(() => {
+  injectSavePromptButton();
+});
+
+observer.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+// Also retry on focus and input
+document.addEventListener('focusin', injectSavePromptButton);
+document.addEventListener('input', injectSavePromptButton);
+
+// Initial injection with retries
+setTimeout(injectSavePromptButton, 500);
+setTimeout(injectSavePromptButton, 1000);
+setTimeout(injectSavePromptButton, 2000);

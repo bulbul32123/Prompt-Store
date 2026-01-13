@@ -5,11 +5,9 @@ import './index.css'
 
 console.log('🚀 main.jsx executing');
 
-// Function to initialize the app
 const initApp = () => {
   console.log('🔍 Attempting to initialize app...');
   
-  // Look for the extension root element
   const rootElement = document.getElementById('ai-prompt-manager-root');
   
   if (!rootElement) {
@@ -19,8 +17,7 @@ const initApp = () => {
   }
   
   console.log('✅ Found ai-prompt-manager-root');
-  
-  // Check if already mounted
+
   if (rootElement.hasAttribute('data-reactroot') || rootElement._reactRootContainer) {
     console.log('⚠️ React already mounted to this element');
     return;
@@ -44,9 +41,8 @@ const initApp = () => {
   }
 };
 
-// Start initialization with retry logic
 let retryCount = 0;
-const maxRetries = 50; // 5 seconds max
+const maxRetries = 50;
 
 const startInit = () => {
   if (retryCount >= maxRetries) {
@@ -63,6 +59,5 @@ const startInit = () => {
   }
 };
 
-// Start immediately
 console.log('📦 Starting app initialization...');
 startInit();

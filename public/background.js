@@ -1,10 +1,8 @@
-// Background service worker for handling extension icon clicks
 chrome.action.onClicked.addListener(async (tab) => {
     console.log('=== Extension icon clicked ===');
     console.log('Tab URL:', tab.url);
     console.log('Tab ID:', tab.id);
     
-    // Check if we're on a supported page
     const supportedUrls = [
       'chat.openai.com',
       'chatgpt.com',
@@ -18,8 +16,6 @@ chrome.action.onClicked.addListener(async (tab) => {
       console.log('❌ Not on a supported site');
       console.log('Current URL:', tab.url);
       console.log('Supported sites:', supportedUrls);
-      
-      // Try to show notification if permission is available
       if (chrome.notifications) {
         chrome.notifications.create({
           type: 'basic',
@@ -34,7 +30,6 @@ chrome.action.onClicked.addListener(async (tab) => {
     console.log('✅ Supported site detected');
   
     try {
-      // Try to send message to content script
       console.log('Attempting to send message to content script...');
       const response = await chrome.tabs.sendMessage(tab.id, { action: "toggleDropdown" });
       console.log('✅ Message sent successfully, response:', response);
@@ -43,15 +38,13 @@ chrome.action.onClicked.addListener(async (tab) => {
       console.log('Attempting to inject content script...');
       
       try {
-        // Inject CSS first
         console.log('Injecting CSS...');
         await chrome.scripting.insertCSS({
           target: { tabId: tab.id },
           files: ['content.css']
         });
         console.log('✅ CSS injected');
-        
-        // Inject content script
+      
         console.log('Injecting content script...');
         await chrome.scripting.executeScript({
           target: { tabId: tab.id },
@@ -59,7 +52,6 @@ chrome.action.onClicked.addListener(async (tab) => {
         });
         console.log('✅ Content script injected');
         
-        // Wait for the script to initialize, then send message
         console.log('Waiting 1 second for initialization...');
         setTimeout(async () => {
           try {
@@ -76,7 +68,6 @@ chrome.action.onClicked.addListener(async (tab) => {
     }
   });
   
-  // Listen for installation
   chrome.runtime.onInstalled.addListener(() => {
     console.log('🎉 AI Prompt Manager installed successfully');
   });

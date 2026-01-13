@@ -6,13 +6,3 @@ Tasks for this projects
 4. Fix the keyboard open and close option
 5. Add some Settings options like Themes,User details(Name,email,phone).
 6. Fix add the prompt (User add the prompt with the existing prompt).
-
-
-
-
-git add src/Tasks.md
-git commit -m 'src/Tasks.md'
-git push -u origin main
-git add src/App.jsx
-git commit -m 'src/App.jsx'
-git push -u origin main

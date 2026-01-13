@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Star, TrendingUp, Copy, X, ChevronDown, Settings, Plus, Tag, BarChart3, ThumbsUp, ThumbsDown, FolderOpen, History, Folder, MoreVertical } from 'lucide-react';
+import { Search, Star, TrendingUp, Copy, X, Settings, Plus, Tag, BarChart3, ThumbsUp, ThumbsDown, FolderOpen, History, Folder, MoreVertical } from 'lucide-react';
 
-// IMPORTANT: Use chrome.storage.local instead of localStorage for extensions
 const STORAGE_KEY = 'ai_prompt_manager_data';
 
 const loadFromStorage = () => {
@@ -11,7 +10,6 @@ const loadFromStorage = () => {
         resolve(result[STORAGE_KEY] || { prompts: [], folders: [] });
       });
     } else {
-      // Fallback for development
       try {
         const data = localStorage.getItem(STORAGE_KEY);
         resolve(data ? JSON.parse(data) : { prompts: [], folders: [] });
@@ -27,7 +25,6 @@ const saveToStorage = (data) => {
   if (typeof chrome !== 'undefined' && chrome.storage) {
     chrome.storage.local.set({ [STORAGE_KEY]: data });
   } else {
-    // Fallback for development
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
@@ -36,7 +33,6 @@ const saveToStorage = (data) => {
   }
 };
 
-// Store management
 const usePromptStore = () => {
   const [data, setData] = useState({ prompts: [], folders: [] });
   const [searchQuery, setSearchQuery] = useState('');
@@ -214,7 +210,6 @@ const usePromptStore = () => {
   };
 };
 
-// Feedback Modal Component
 const FeedbackModal = ({ prompt, onFeedback, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -252,7 +247,6 @@ const FeedbackModal = ({ prompt, onFeedback, onClose }) => {
   );
 };
 
-// Version History Modal
 const VersionHistoryModal = ({ prompt, onRollback, onClose }) => {
   const versions = prompt.versions || [];
 
@@ -311,7 +305,6 @@ const VersionHistoryModal = ({ prompt, onRollback, onClose }) => {
   );
 };
 
-// Add Prompt Modal Component
 const AddPromptModal = ({ onAdd, onClose, editPrompt = null, prefillContent = '', store }) => {
   const [title, setTitle] = useState(editPrompt?.title || '');
   const [content, setContent] = useState(
@@ -326,7 +319,6 @@ const AddPromptModal = ({ onAdd, onClose, editPrompt = null, prefillContent = ''
     if (!title.trim() || !content.trim()) return;
 
     if (editPrompt) {
-      // Create new version
       store.createVersion(editPrompt.id, content, changeNote);
       store.updatePrompt(editPrompt.id, {
         title: title.trim(),
@@ -477,7 +469,6 @@ const AddPromptModal = ({ onAdd, onClose, editPrompt = null, prefillContent = ''
   );
 };
 
-// Prompt Card Component
 const PromptCard = ({ prompt, onUse, onToggleStar, onEdit, onDuplicate, onDelete, onViewHistory, compact = false }) => {
   const [showMenu, setShowMenu] = useState(false);
   const totalFeedback = (prompt.positiveCount || 0) + (prompt.negativeCount || 0);
@@ -617,7 +608,6 @@ const PromptCard = ({ prompt, onUse, onToggleStar, onEdit, onDuplicate, onDelete
   );
 };
 
-// Dropdown Component
 const PromptDropdown = ({ isOpen, onClose, onUsePrompt, onAddPrompt, store, openSidebar }) => {
   const searchRef = useRef(null);
 
@@ -716,7 +706,6 @@ const PromptDropdown = ({ isOpen, onClose, onUsePrompt, onAddPrompt, store, open
   );
 };
 
-// Sidebar Component
 const PromptSidebar = ({ isOpen, onClose, onUsePrompt, onEdit, onDuplicate, onDelete, onViewHistory, store }) => {
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -853,7 +842,6 @@ const PromptSidebar = ({ isOpen, onClose, onUsePrompt, onEdit, onDuplicate, onDe
   );
 };
 
-// Main App Component
 export default function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -863,8 +851,6 @@ export default function App() {
   const [editPrompt, setEditPrompt] = useState(null);
   const [versionHistory, setVersionHistory] = useState(null);
   const store = usePromptStore();
-
-  // Listen for extension icon clicks
   useEffect(() => {
     const handleToggle = () => {
       setSidebarOpen(false);
@@ -880,8 +866,8 @@ export default function App() {
       if (!text) return;
     
       setPrefillContent(text);
-      setEditPrompt(null);      // CRITICAL
-      setAddPromptModal(true);  // Create mode
+      setEditPrompt(null);     
+      setAddPromptModal(true); 
     };
     
   
@@ -891,7 +877,6 @@ export default function App() {
     };
   }, []);
   
-  // Keyboard shortcut
   useEffect(() => {
     const handleKeyboard = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -908,11 +893,7 @@ export default function App() {
   const insertPrompt = (content) => {
     const chatGPTInput = document.querySelector('#prompt-textarea p');
     const geminiInput = document.querySelector('.ql-editor.textarea.new-input-ui p');
-    
-    // Try multiple selectors for Claude with detailed logging
     let claudeInput = null;
-    
-    // Try each selector and log results
     const selectors = [
       '[data-testid="chat-input"] p',
       '[data-testid="chat-input"]',
@@ -921,23 +902,16 @@ export default function App() {
       '.tiptap p',
       '.tiptap'
     ];
-    
-    console.log('=== Trying to find Claude input ===');
     for (const selector of selectors) {
       const element = document.querySelector(selector);
-      console.log(`Selector: "${selector}"`, element);
       if (element && !claudeInput) {
         claudeInput = element;
-        console.log('✓ Found with selector:', selector);
         break;
       }
     }
 
     const targetInput = chatGPTInput || geminiInput || claudeInput;
-    console.log('Final targetInput:', targetInput);
-
     if (targetInput) {
-      // Append to existing text instead of replacing
       const existingText = targetInput.textContent || '';
       const separator = existingText.trim() ? '\n\n' : '';
       targetInput.textContent = existingText + separator + content;
@@ -977,7 +951,6 @@ export default function App() {
     setDropdownOpen(false);
     setSidebarOpen(false);
 
-    // Show feedback modal
     setTimeout(() => setFeedbackModal(prompt), 500);
   };
 

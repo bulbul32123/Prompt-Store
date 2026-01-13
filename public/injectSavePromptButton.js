@@ -1,24 +1,17 @@
 function findChatInput() {
   return (
-    document.querySelector('#prompt-textarea') ||                // ChatGPT
-    document.querySelector('.trailing-actions-wrapper.ui-ready-fade-in.ng-tns-c626672225-6') || // Gemini
-    document.querySelector('[contenteditable="true"][role="textbox"]') || // Claude
-    document.querySelector('.tiptap')                             // Claude fallback
+    document.querySelector('#prompt-textarea') ||               
+    document.querySelector('.trailing-actions-wrapper.ui-ready-fade-in.ng-tns-c626672225-6') || 
+    document.querySelector('[contenteditable="true"][role="textbox"]') || 
+    document.querySelector('.tiptap')                            
   );
 }
 
 function findActionBar(input) {
   if (!input) return null;
 
-  /* ==========================
-     ChatGPT
-  ========================== */
   const chatgptBar = document.querySelector('.trailing-actions-wrapper');
   if (chatgptBar) return chatgptBar;
-
-  /* ==========================
-     Gemini
-  ========================== */
   if (input.classList.contains('ql-editor')) {
     let el = input.parentElement;
     while (el && el !== document.body) {
@@ -32,13 +25,8 @@ function findActionBar(input) {
     }
   }
 
-  /* ==========================
-     Claude (FIXED) - Target the exact container
-  ========================== */
-  // First try to find by the radix menu ID pattern
   const radixMenu = document.querySelector(['[contenteditable="true"][role="textbox"]', '.tiptap']);
   if (radixMenu) {
-    // Get the parent flex container that holds both the menu and send button
     let parent = radixMenu.parentElement;
     while (parent && parent !== document.body) {
       const style = getComputedStyle(parent);
@@ -51,7 +39,6 @@ function findActionBar(input) {
     }
   }
 
-  // Fallback: look for the specific flex container structure
   let el = input.parentElement;
   while (el && el !== document.body) {
     const style = getComputedStyle(el);
@@ -102,7 +89,6 @@ function injectSavePromptButton() {
     transition: background 0.2s;
   `;
 
-  // Add hover effect
   btn.addEventListener('mouseenter', () => {
     btn.style.background = 'rgba(255, 255, 255, 0.1)';
   });
@@ -120,7 +106,6 @@ function injectSavePromptButton() {
     );
   });
 
-  // Insert before the send button (which should be the last child)
   const sendButton = actionBar.querySelector('button[type="submit"]');
   if (sendButton) {
     actionBar.insertBefore(btn, sendButton);
@@ -138,11 +123,9 @@ observer.observe(document.body, {
   subtree: true
 });
 
-// Also retry on focus and input
 document.addEventListener('focusin', injectSavePromptButton);
 document.addEventListener('input', injectSavePromptButton);
 
-// Initial injection with retries
 setTimeout(injectSavePromptButton, 500);
 setTimeout(injectSavePromptButton, 1000);
 setTimeout(injectSavePromptButton, 2000);

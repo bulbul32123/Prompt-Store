@@ -1,18 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "AI Prompt Manager",
+  "name": "Promtlens",
   "version": "1.0.0",
   "description": "Save and manage your AI prompts for ChatGPT, Claude, and Gemini",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "scripting"
-  ],
+  "permissions": ["storage", "activeTab", "scripting"],
   "action": {
     "default_title": "AI Prompt Manager"
   },
   "icons": {
-    "128": "icons/icons.png"
+    "128": "icons/promtlens.png"
   },
   "content_scripts": [
     {
@@ -22,7 +18,7 @@
         "https://gemini.google.com/*",
         "https://claude.ai/*"
       ],
-      "js": ["content.js","injectSavePromptButton.js"],
+      "js": ["content.js", "injectSavePromptButton.js"],
       "css": ["content.css"],
       "run_at": "document_end"
     }
@@ -32,7 +28,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["assets/*"],
+      "resources": ["icons/*", "assets/*"],
       "matches": ["<all_urls>"]
     }
   ]

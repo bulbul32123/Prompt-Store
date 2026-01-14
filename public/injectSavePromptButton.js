@@ -1,9 +1,9 @@
 function findChatInput() {
   return (
-    document.querySelector('#prompt-textarea') ||               
-    document.querySelector('.trailing-actions-wrapper.ui-ready-fade-in.ng-tns-c626672225-6') || 
-    document.querySelector('[contenteditable="true"][role="textbox"]') || 
-    document.querySelector('.tiptap')                            
+    document.querySelector('#prompt-textarea') ||
+    document.querySelector('.trailing-actions-wrapper.ui-ready-fade-in.ng-tns-c626672225-6') ||
+    document.querySelector('[contenteditable="true"][role="textbox"]') ||
+    document.querySelector('.tiptap')
   );
 }
 
@@ -31,7 +31,7 @@ function findActionBar(input) {
     while (parent && parent !== document.body) {
       const style = getComputedStyle(parent);
       const hasSendButton = parent.querySelector('button[type="submit"]');
-      
+
       if (style.display === 'flex' && hasSendButton) {
         return parent;
       }
@@ -59,6 +59,7 @@ function findActionBar(input) {
 function injectSavePromptButton() {
   const input = findChatInput();
   if (!input) return;
+  const iconUrl = chrome?.runtime.getURL('icons/promtlens.svg');
 
   const actionBar = findActionBar(input);
   if (!actionBar) return;
@@ -69,7 +70,15 @@ function injectSavePromptButton() {
   btn.id = 'save-prompt-btn';
   btn.type = 'button';
   btn.title = 'Save prompt';
-  btn.innerHTML = '⭐';
+  // Change this line if using an extension:
+
+  btn.innerHTML = `
+  <div style="display: flex; align-items: center; justify-content: center;">
+    <img src="${iconUrl}" 
+         style="width: 25px; height: 25px; min-width: 25px; min-height: 25px; display: block;" 
+         onerror="this.style.display='none'; console.error('Image failed to load:', this.src);">
+  </div>
+`;
 
   btn.style.cssText = `
     margin-left: 6px;
@@ -92,7 +101,7 @@ function injectSavePromptButton() {
   btn.addEventListener('mouseenter', () => {
     btn.style.background = 'rgba(255, 255, 255, 0.1)';
   });
-  
+
   btn.addEventListener('mouseleave', () => {
     btn.style.background = 'transparent';
   });

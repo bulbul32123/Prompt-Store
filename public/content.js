@@ -1,7 +1,3 @@
-console.log('🚀 AI Prompt Manager content script starting...');
-console.log('Current URL:', window.location.href);
-console.log('Document ready state:', document.readyState);
-
 if (window.aiPromptManagerInjected) {
   console.log('⚠️ AI Prompt Manager already injected - skipping');
 } else {

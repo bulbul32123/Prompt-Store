@@ -1023,8 +1023,6 @@ export default function App() {
     store={store}
   />
 )}
-
-
       {versionHistory && (
         <VersionHistoryModal
           prompt={versionHistory}

@@ -3,35 +3,24 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 
-console.log('🚀 main.jsx executing');
-
 const initApp = () => {
-  console.log('🔍 Attempting to initialize app...');
-  
   const rootElement = document.getElementById('ai-prompt-manager-root');
   
   if (!rootElement) {
-    console.warn('⚠️ ai-prompt-manager-root not found, retrying in 100ms...');
     setTimeout(initApp, 100);
     return;
   }
-  
-  console.log('✅ Found ai-prompt-manager-root');
-
   if (rootElement.hasAttribute('data-reactroot') || rootElement._reactRootContainer) {
-    console.log('⚠️ React already mounted to this element');
     return;
   }
   
   try {
-    console.log('🎯 Creating React root and mounting App...');
     const root = ReactDOM.createRoot(rootElement);
     root.render(
       <React.StrictMode>
         <App />
       </React.StrictMode>
-    );
-    console.log('✅ React app mounted successfully!');
+    ); 
   } catch (error) {
     console.error('❌ Error mounting React app:', error);
     console.error('Error details:', {

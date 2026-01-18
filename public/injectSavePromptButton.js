@@ -70,8 +70,6 @@ function injectSavePromptButton() {
   btn.id = 'save-prompt-btn';
   btn.type = 'button';
   btn.title = 'Save prompt';
-  // Change this line if using an extension:
-
   btn.innerHTML = `
   <div style="display: flex; align-items: center; justify-content: center;">
     <img src="${iconUrl}" 
